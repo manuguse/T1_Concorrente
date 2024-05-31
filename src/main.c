@@ -14,9 +14,12 @@
 #include "queue.h"
 #include "toy.h"
 
-// Inicia a fila
+extern sem_t sem_bilheteria;
+
+// Inicia a fila (e variáveis globais)
 void init_main_queue(){
     gate_queue = create_queue();
+    sem_init(&sem_bilheteria, 0, 0); // Inicializa semáforo que controla o atendimento na bilheteria
 }
 
 // Destroi a fila

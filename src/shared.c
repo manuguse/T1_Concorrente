@@ -4,7 +4,9 @@
 
 
 // Você pode declarar novas funções (ou variaveis compartilhadas) aqui
-
+sem_t sem_bilheteria;
+int* clientes_em_atendimento;
+int n_atendentes;
 
 /**********************************
  *          ATENÇÃO               *

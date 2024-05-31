@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "pthread.h": "c",
+        "shared.h": "c",
+        "queue.h": "c"
+    }
+}
