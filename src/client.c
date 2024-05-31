@@ -16,10 +16,10 @@ extern Queue *gate_queue; //Fila única de entrada no parque.
 extern sem_t sem_bilheteria; // Semaforo para controlar o atendimento na bilheteria
 extern int* clientes_em_atendimento; // Vetor que guarda os clientes que estão sendo atendidos
 extern int n_atendentes; // Número de atendentes
+extern int n_clients; // Número de clientes
 
+sem_t sem_mutex_fila_entrada; // Semaforo binário para proteger região crítica (fila)
 pthread_t *client_threads; //Threads dos clientes guardadas para close()
-int n_clients; //Número de clientes guardado para close()
-sem_t sem_mutex_fila; //Semaforo binário para proteger região crítica (entrada da fila)
 
 // Funcao onde o cliente compra as moedas para usar os brinquedos
 void buy_coins(client_t *self){
@@ -43,9 +43,9 @@ void wait_ticket(client_t *self){
 
 // Funcao onde o cliente entra na fila da bilheteria
 void queue_enter(client_t *self){
-    sem_wait(&sem_mutex_fila); // Entra na região crítica (entrada da fila)
+    sem_wait(&sem_mutex_fila_entrada); // Entra na região crítica (entrada da fila)
     enqueue(gate_queue, self->id); // Cliente efetivamente entra na fila do portão principal.
-    sem_post(&sem_mutex_fila); // Sai da região crítica (entrada da fila)
+    sem_post(&sem_mutex_fila_entrada); // Sai da região crítica (entrada da fila)
     debug("[WAITING] - Turista [%d] entrou na fila do portao principal\n", self->id);
 }
 
@@ -53,7 +53,7 @@ void queue_enter(client_t *self){
 void *enjoy(void *arg){
     client_t *self = (client_t *) arg;
     
-    // NESSA IMPLEMENTAÇÃO, O CLIENTE ENTRA NA FILA ANTES DA BILHETERIA ESTAR PRONTA, MAS SÓ SAI DA FILA DEPOIS QUE A BILHETERIA ESTIVER PRONTA.
+    // NESSA IMPLEMENTAÇÃO, O CLIENTE ENTRA NA FILA ANTES DA BILHETERIA ESTAR PRONTA, MAS SÓ SAI DA FILA DEPOIS QUE TODAS AS BILHETERIAS ESTÃO PRONTAS
 
     queue_enter(self); //Função para entrar na fila única de espera
 
@@ -67,8 +67,7 @@ void *enjoy(void *arg){
 
 // Essa função recebe como argumento informações sobre o cliente e deve iniciar os clientes.
 void open_gate(client_args *args){
-    sem_init(&sem_mutex_fila, 0, 1); // Inicializa o semáforo binário para proteger a região crítica (entrada da fila
-
+    sem_init(&sem_mutex_fila_entrada, 0, 1); // Inicializa o semáforo binário para proteger a região crítica (entrada da fila)
     n_clients = args->n; // Guarda a quantidade de clientes.
     client_threads = (pthread_t *) malloc(n_clients * sizeof(pthread_t)); // Abre espaço para guardar as threads dos clientes.
     // Inicializa as threads dos clientes.
