@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "shared.h": "c",
+        "tickets.h": "c",
+        "stdlib.h": "c",
+        "unistd.h": "c"
+    }
+}

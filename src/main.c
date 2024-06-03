@@ -14,13 +14,20 @@
 #include "queue.h"
 #include "toy.h"
 
-// Inicia a fila
+extern sem_t sem_saida_fila; // Semáforo binário para a saída da fila
+extern sem_t clientes_na_fila; // Semáforo binário que indica a chegada de clientes
+
+// Inicia a fila e inicializa mecanismos de sincronização globais
 void init_main_queue(){
+    sem_init(&sem_saida_fila, 0, 0);
+    sem_init(&clientes_na_fila, 0, 0);
     gate_queue = create_queue();
 }
 
-// Destroi a fila
+// Destroi a fila e finaliza mecanismos de sincronização globais
 void destroy_main_queue(){
+    sem_destroy(&sem_saida_fila);
+    sem_destroy(&clientes_na_fila);
     destroy_queue(gate_queue);
 }
 
@@ -120,7 +127,7 @@ int main(int argc, char *argv[]){
     toys_args->n = _config.toys;
 
     // Ligando os brinquedos.
-    open_toys(toys_args);
+    //open_toys(toys_args);
     // Os turistas entram no parque.
     open_gate(cli_args);
     // A bilheteria abre.
@@ -133,7 +140,7 @@ int main(int argc, char *argv[]){
     close_tickets();
 
     // Desligam os brinquedos.
-    close_toys();
+    //close_toys();
 
     // Desalocando funcionarios
     finish_tickets(tickets, _config.tickets);
@@ -142,7 +149,7 @@ int main(int argc, char *argv[]){
     finish_clients(clients, _config.clients);
     
     // Desalocando brinquedos.
-    finish_toys(toys, _config.toys);
+    //finish_toys(toys, _config.toys);
 
     /********************************************************************************
     *                                       EXCEÇÃO                                 *
