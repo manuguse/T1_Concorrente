@@ -33,7 +33,7 @@ void open_toys(toy_args *args){
     n_brinquedos = args->n; // Guarda o número de atendentes em uma variável global
     toys_shared = args->toys;
     for (int i = 0; i < args->n; i++){
-        debug("[INFO] - Bilheteria %d Abriu!\n", toys_shared[i]->id);
+        debug("[INFO] - Brinquedo %d Abriu!\n", toys_shared[i]->id);
         pthread_create(&(toys_shared[i]->thread), NULL, turn_on, (void *) toys_shared[i]);
     }
 }
@@ -42,7 +42,7 @@ void open_toys(toy_args *args){
 void close_toys(){
     for (int i = 0; i < n_brinquedos; i++){
         pthread_join(toys_shared[i]->thread, NULL);
-        debug("[INFO] - Bilheteria %d Fechou!\n", toys_shared[i]->id);
+        debug("[INFO] - Brinquedo %d Fechou!\n", toys_shared[i]->id);
     }
-    debug("[INFO] - Todas as Bilheterias Fecharam!\n");
+    debug("[INFO] - Todos os Brinquedos Fecharam!\n");
 }

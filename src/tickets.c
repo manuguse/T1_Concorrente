@@ -17,7 +17,7 @@ ticket_t **tickets_shared; // Estrutura que guarda informações sobre a bilhete
 // Thread que implementa uma bilheteria
 void *sell(void *args){
 
-    debug("[INFO] - Bilheteria Abriu!\n");
+     // debug("[INFO] - Bilheteria Abriu!\n"); // PRINT ORIGINAL
 
     pthread_exit(NULL);
 }

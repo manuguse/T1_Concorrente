@@ -54,6 +54,7 @@ void open_gate(client_args *args){
     client_threads = (pthread_t *) malloc(n_clientes * sizeof(pthread_t)); // Libera espaço para threads dos clientes
     // Inicializa as threads dos clientes
     for (int i = 0; i < n_clientes; i++){
+        debug("[INFO] - Turista [%d] entrou no parque.\n", args->clients[i]->id); // NÃO ORIGINAL
         pthread_create(&client_threads[i], NULL, enjoy, (void *) args->clients[i]); // Inicializa a thread do cliente
     }
 }
