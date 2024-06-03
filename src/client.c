@@ -15,19 +15,11 @@
 pthread_t *client_threads; // Lista de threads dos clientes
 int n_clientes; // Número de clientes
 
-// Thread que implementa o fluxo do cliente no parque.
-void *enjoy(void *arg){
-
-    //Sua lógica aqui
-
-
-    debug("[EXIT] - O turista saiu do parque.\n");
-    pthread_exit(NULL);
-}
 
 // Funcao onde o cliente compra as moedas para usar os brinquedos
 void buy_coins(client_t *self){
-    // Sua lógica aqui
+    // Sua lógica aqui.
+    debug("[CASH] - Turista [%d] comprou [%d] moedas.\n", self->id, self->coins);
 }
 
 // Função onde o cliente espera a liberacao da bilheteria para adentrar ao parque.
@@ -39,12 +31,22 @@ void wait_ticket(client_t *self){
 void queue_enter(client_t *self){
     // Sua lógica aqui.
     debug("[WAITING] - Turista [%d] entrou na fila do portao principal\n", self->id);
+}
 
-    // Sua lógica aqui.
-    buy_coins(self);
+// Thread que implementa o fluxo do cliente no parque.
+void *enjoy(void *arg){
 
-    // Sua lógica aqui.
-    debug("[CASH] - Turista [%d] comprou [%d] moedas.\n", self->id, self->coins);
+    //Sua lógica aqui
+    client_t *self = (client_t *) arg;
+
+    queue_enter(self); // ENTRA NA FILA
+
+    wait_ticket(self); // ESPERA A LIBERACAO DA BILHETERIA
+
+    buy_coins(self); // COMPRA MOEDAS E ENTRA NO PARQUE
+
+    debug("[EXIT] - O turista %d saiu do parque.\n", self->id);
+    pthread_exit(NULL);
 }
 
 // Essa função recebe como argumento informações sobre o cliente e deve iniciar os clientes.
@@ -64,8 +66,8 @@ void close_gate(){
     // Sua lógica aqui
     for (int i = 0; i < n_clientes; i++){
         pthread_join(client_threads[i], NULL); // Espera a thread do cliente terminar
-        free(&client_threads[i]); // Libera a memória da thread do cliente
+        debug("[INFO] - Turista [%d] saiu do parque.\n", i); // NÃO ORIGINAL
     }
-    //free(client_threads); // Libera a memória da lista de threads dos clientes
+    free(client_threads); // Libera a memória da lista de threads dos clientes
     debug("[INFO] - Todos os turistas sairam do parque.\n"); // NÃO ORIGINAL
 }
