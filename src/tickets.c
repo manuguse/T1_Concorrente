@@ -35,6 +35,10 @@ void *sell(void *args){
         int prox_cliente = dequeue(gate_queue); // Pega o próximo cliente da fila
         sem_post(&sem_bin_tickets); // Sai da região crítica
 
+        if (prox_cliente == -1){
+            break; // Se não houver mais clientes, a bilheteria fecha
+        }
+
         clientes_em_atendimento[funcionario->id - 1] = prox_cliente; // Coloca o cliente em atendimento
         sem_post(&sem_saida_fila); // Libera o cliente para ser atendido
         debug("[TICKET] - Bilheteria [%d] atendendo turista [%d].\n", funcionario->id, prox_cliente); // PRINT ORIGINAL
@@ -58,7 +62,7 @@ void open_tickets(tickets_args *args){
     // Guarda os atendentes para a função close() e inicia as threads
     tickets_shared = args->tickets;
     for (int i = 0; i < args->n; i++){
-        debug("[INFO] - Bilheteria %d Abriu!\n", tickets_shared[i]->id); // NÃO ORIGINAL
+        //debug("[INFO] - Bilheteria %d Abriu!\n", tickets_shared[i]->id); // NÃO ORIGINAL
         pthread_create(&(tickets_shared[i]->thread), NULL, sell, (void *) tickets_shared[i]);
     }
 }
@@ -71,7 +75,7 @@ void close_tickets(){
 
     for (int i = 0; i < n_funcionarios; i++){
         pthread_join(tickets_shared[i]->thread, NULL);
-        debug("[INFO] - Bilheteria %d Fechou!\n", tickets_shared[i]->id); //NÃO ORIGINAL
+        //debug("[INFO] - Bilheteria %d Fechou!\n", tickets_shared[i]->id); //NÃO ORIGINAL
     }
     debug("[INFO] - Todas as Bilheterias Fecharam!\n"); //NÃO ORIGINAL
 }

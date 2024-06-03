@@ -44,15 +44,15 @@ void wait_ticket(client_t *self){
         for (int i = 0; i < n_funcionarios; i++){
             if (clientes_em_atendimento[i] == self->id){
                 sera_atendido = 1; // Se for a sua vez, será atendido
-                sem_post(&sem_saida_fila); // Era a sua vez, libera pro próximo cliente
                 break;
             }
         }
+        sem_post(&sem_saida_fila); // Independente de ser atendido, deixa outro cliente ser atendido
+
         if (sera_atendido == 0){
-            sem_post(&sem_saida_fila); // Não era a sua vez, deixa outro cliente ser atendido
+            sem_post(&clientes_na_fila); // Avisa que não saiu da fila
         }
     }
-    debug("[TICKET] - Turista [%d] foi atendido.\n", self->id);
 }
 
 // Funcao onde o cliente entra na fila da bilheteria
@@ -78,7 +78,7 @@ void *enjoy(void *arg){
 
     buy_coins(self); // COMPRA MOEDAS E ENTRA NO PARQUE
 
-    debug("[EXIT] - O turista %d saiu do parque.\n", self->id);
+    //debug("[EXIT] - O turista %d saiu do parque.\n", self->id);
     pthread_exit(NULL);
 }
 
