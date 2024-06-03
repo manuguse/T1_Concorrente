@@ -12,9 +12,14 @@
 #include "toy.h"
 #include "shared.h"
 
+int toy_threads = 0;
+toy_t **toys = NULL;
+
 
 // Thread que o brinquedo vai usar durante toda a simulacao do sistema
 void *turn_on(void *args){
+
+    toy_t toy = *((toy_t *) args); // recebe o brinquedo a partir do argumento
 
     debug("[ON] - O brinquedo  [%d] foi ligado.\n", rand()); // Altere para o id do brinquedo
 
@@ -31,5 +36,8 @@ void open_toys(toy_args *args){
 
 // Desligando os brinquedos
 void close_toys(){
-    // Sua lógica aqui
+    for (int i = 0; i < toy_threads; i++){
+        pthread_join(toys[i]->thread, NULL);
+    }
+    free(toys);
 }
