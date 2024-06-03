@@ -12,6 +12,8 @@
 #include "queue.h"
 #include "shared.h"
 
+pthread_t *client_threads; // Lista de threads dos clientes
+int n_clientes; // Número de clientes
 
 // Thread que implementa o fluxo do cliente no parque.
 void *enjoy(void *arg){
@@ -48,9 +50,21 @@ void queue_enter(client_t *self){
 // Essa função recebe como argumento informações sobre o cliente e deve iniciar os clientes.
 void open_gate(client_args *args){
     // Sua lógica aqui
+    n_clientes = args->n; // Guarda o número de clientes em uma variável global
+    client_threads = (pthread_t *) malloc(n_clientes * sizeof(pthread_t)); // Libera espaço para threads dos clientes
+    // Inicializa as threads dos clientes
+    for (int i = 0; i < n_clientes; i++){
+        pthread_create(&client_threads[i], NULL, enjoy, (void *) args->clients[i]); // Inicializa a thread do cliente
+    }
 }
 
 // Essa função deve finalizar os clientes
 void close_gate(){
-   //Sua lógica aqui
+    // Sua lógica aqui
+    for (int i = 0; i < n_clientes; i++){
+        pthread_join(client_threads[i], NULL); // Espera a thread do cliente terminar
+        free(&client_threads[i]); // Libera a memória da thread do cliente
+    }
+    //free(client_threads); // Libera a memória da lista de threads dos clientes
+    debug("[INFO] - Todos os turistas sairam do parque.\n"); // NÃO ORIGINAL
 }
