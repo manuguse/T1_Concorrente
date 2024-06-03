@@ -15,7 +15,7 @@
 #include "toy.h"
 
 extern sem_t sem_saida_fila; // Semáforo binário para a saída da fila
-extern sem_t clientes_na_fila; // Semáforo binário que indica a chegada de clientes
+extern sem_t clientes_na_fila; // Semáforo binário que indica a chegada de clientes 
 
 // Inicia a fila e inicializa mecanismos de sincronização globais
 void init_main_queue(){

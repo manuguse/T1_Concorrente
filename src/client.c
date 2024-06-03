@@ -19,6 +19,7 @@ extern int n_funcionarios; // Número de atendentes
 extern int *clientes_em_atendimento; // Lista de clientes em atendimento
 extern sem_t sem_saida_fila; // Semáforo binário para a saída da fila
 extern sem_t clientes_na_fila; // Semáforo binário que indica a chegada de clientes
+extern sem_t *sem_bins_funcs; // Lista de semáforos binários que fazem cada funcionario esperar um atendimento antes de começar o próximo
 
 // VARIÁVEIS COMPARTILHADAS NESTE ARQUIVO
 sem_t sem_bin_queue; // Semáforo binário para a fila do portão principal
@@ -43,6 +44,7 @@ void wait_ticket(client_t *self){
         // Verifica se é a sua vez de ser atendido
         for (int i = 0; i < n_funcionarios; i++){
             if (clientes_em_atendimento[i] == self->id){
+                sem_post(&sem_bins_funcs[i]); // Libera o funcionário para atender outro cliente
                 sera_atendido = 1; // Se for a sua vez, será atendido
                 break;
             }

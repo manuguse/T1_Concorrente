@@ -18,6 +18,7 @@ extern int n_funcionarios; // Número de atendentes
 extern int *clientes_em_atendimento; // Lista de clientes em atendimento
 extern sem_t sem_saida_fila; // Semáforo binário para a saída da fila
 extern sem_t clientes_na_fila; // Semáforo binário que indica a chegada de clientes
+extern sem_t *sem_bins_funcs; // Lista de semáforos binários que fazem cada funcionario esperar um atendimento antes de começar o próximo
 
 // VARIÁVEIS COMPARTILHADAS NESTE ARQUIVO
 int n_clientes_atendidos = 0; // Número de clientes atendidos
@@ -29,6 +30,8 @@ void *sell(void *args){
      // debug("[INFO] - Bilheteria Abriu!\n"); // PRINT ORIGINAL
     ticket_t *funcionario = (ticket_t *) args;
     while (n_clientes_atendidos < n_clientes){
+        sem_wait(&sem_bins_funcs[funcionario->id - 1]); // Só atende um cliente novo se já terminou de atender o anterior
+
         sem_wait(&clientes_na_fila); // Espera a chegada de clientes
         sem_wait(&sem_bin_tickets); // Entra na região crítica
         n_clientes_atendidos++; // Incrementa o número de clientes atendidos
@@ -51,6 +54,12 @@ void open_tickets(tickets_args *args){
 
     sem_init(&sem_bin_tickets, 0, 1); // Inicializa o semáforo para saída da fila
 
+    // Aloca e inicializa a lista de semáforos binários para os funcionários
+    sem_bins_funcs = (sem_t *) malloc(sizeof(sem_t) * args->n); 
+    for (int i = 0; i < args->n; i++){
+        sem_init(&sem_bins_funcs[i], 0, 1); // Inicializa o semáforo para a saída da fila
+    }
+
     n_funcionarios = args->n; // Guarda o número de atendentes em uma variável global
     
     // Aloca e inicializa a lista de clientes em atendimento
@@ -72,6 +81,7 @@ void close_tickets(){
     sem_destroy(&sem_bin_tickets); // Destrói o semáforo binário que protege a região crítica dos funcionários
 
     free (clientes_em_atendimento); // Libera a lista de clientes em atendimento
+    free (sem_bins_funcs); // Libera a lista de semáforos binários dos funcionários
 
     for (int i = 0; i < n_funcionarios; i++){
         pthread_join(tickets_shared[i]->thread, NULL);
