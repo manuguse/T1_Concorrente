@@ -74,13 +74,13 @@ void play(client_t *self) {
         &toy->mutex);       // protege a manipulação de atributos do brinquedo
     toy->p_in_toy_queue++;  // entra na "fila" do brinquedo
     debug(
-        "[CASH] - Turista [%d] entrou na fila do brinquedo [%d].\n",
-        self->id, toy->id, toy->p_in_toy_queue, toy->capacity, self->coins);
+        "[TOY_QUEUE] - Turista [%d] entrou na fila do brinquedo [%d].\n",
+        self->id, toy->id);
     sem_post(
         &toy->call_sem);  // avisa o brinquedo que alguém entrou na fila dele
     pthread_mutex_unlock(&toy->mutex);
     sem_wait(&toy->queue_sem);  // aguarda poder entrar no brinquedo e brincar
-    debug("[CASH] - Turista [%d] brincou no brinquedo [%d]. Moedas restantes:[%d]\n",
+    debug("[TOY] - Turista [%d] brincou no brinquedo [%d]. Moedas restantes:[%d]\n",
           self->id, toy->id, self->coins - 1);
     if (--self->coins == 0) { // verifica se acabaram as moedas e para de brincar caso sim
       break;
