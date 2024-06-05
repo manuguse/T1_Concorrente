@@ -52,13 +52,13 @@ toy_t **init_toys(int number) {
   for (int i = 0; i < number; i++) {
     toys[i] = (toy_t *)malloc(sizeof(toy_t));
     toys[i]->id = i + 1;
-    toys[i]->capacity = (rand() % (MAX_CAPACITY_TOY - 1)) + MIN_CAPACITY_TOY;
+    toys[i]->capacity = 1;
+    // toys[i]->capacity = (rand() % (MAX_CAPACITY_TOY - 1)) + MIN_CAPACITY_TOY;
     pthread_mutex_init(&toys[i]->mutex, NULL);
-    sem_init(&toys[i]->queue_sem, 0, toys[i]->capacity);
-    sem_init(&toys[i]->ride_sem, 0, 0);
+    sem_init(&toys[i]->queue_sem, 0, 0);
     sem_init(&toys[i]->call_sem, 0, 0);
     toys[i]->timer_started = FALSE;
-    toys[i]->in_ride = 0;
+    toys[i]->toy_queue = 0;
     toys[i]->ride_time = (rand() % 10 + 1);
   }
   return toys;

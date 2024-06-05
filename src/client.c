@@ -63,24 +63,13 @@ void buy_coins(client_t *self) {
 void play(client_t *self) {
   while (TRUE) {
     toy_t *toy = toys[rand() % n_brinquedos_total];
-    debug("[RIDE] - Turista [%d] na fila do brinquedo [%d].\n", self->id,
-          toy->id);
-          int value;
-          sem_getvalue(&toy->queue_sem, &value);
-          debug("[RIDE] - Turista [%d] antes de entrar na fila [%d], [%d].\n", self->id,
-          toy->id, value);
-    // TODO arrumar isso
-    sem_wait(&toy->queue_sem);  // Entrou na fila do brinquedo
-
-    debug("[RIDE] - Turista [%d] conseguiu entrar na fila [%d].\n", self->id,
-          toy->id);
     pthread_mutex_lock(&toy->mutex);
-    toy->in_ride++;
+    toy->toy_queue++;
     pthread_mutex_unlock(&toy->mutex);
-    sem_post(&toy->call_sem);   // Avisa que entrou no brinquedo
-    sem_wait(&toy->ride_sem);   // Espera terminar de brincar no brinquedo
-    sem_post(&toy->queue_sem);  // Libera a vaga na fila
-    debug("[RIDE] - Turista [%d] brincou no brinquedo [%d]. Moedas: [%d]\n",
+    sem_post(
+        &toy->call_sem);  // Avisa o brinquedo que alguém entrou na fila dele
+    sem_wait(&toy->queue_sem);  // Aguarda poder entrar no brinquedo e brincar
+    debug("[CASH] - Turista [%d] brincou no brinquedo [%d]. Moedas:[%d]\n",
           self->id, toy->id, self->coins - 1);
     if (--self->coins == 0) {
       break;

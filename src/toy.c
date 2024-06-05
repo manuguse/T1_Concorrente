@@ -24,16 +24,16 @@ void *timer_function(void *arg) {
   pthread_mutex_lock(&toy->mutex);
   debug(
       "[TIMER] - O brinquedo [%d] está iniciando com [%d] devido ao timeout.\n",
-      toy->id, toy->in_ride);
+      toy->id, toy->toy_queue);
   sleep(RIDETIME);
-  unsigned int in_ride = toy->in_ride;
-  toy->in_ride = 0;
-  for (int i = 0; i < in_ride; i++) {
+  unsigned int toy_queue = toy->toy_queue;
+  toy->toy_queue = 0;
+  for (int i = 0; i < toy_queue; i++) {
     sem_post(&toy->ride_sem);
   }
   toy->timer_started = FALSE;
   int value;
-          sem_getvalue(&toy->queue_sem, &value);
+  sem_getvalue(&toy->queue_sem, &value);
   debug("[RIDE] - O brinquedo [%d] acabou de rodar [%d].\n", toy->id, value);
   pthread_mutex_unlock(&toy->mutex);
   //   pthread_mutex_unlock(&toy->timeout_mutex);
@@ -48,38 +48,34 @@ void *turn_on(void *args) {
         toy->id);  // Altere para o id do brinquedo
 
   while (TRUE) {
-    sem_wait(&toy->call_sem);
+    sem_wait(&toy->call_sem);  // Esperando alguém chamar o brinquedo
 
-    pthread_mutex_lock(&toy->mutex);
     pthread_mutex_lock(&clientes_no_parque_mutex);
     if (n_clientes_no_parque == 0) {
-      pthread_mutex_unlock(&toy->mutex);
       pthread_mutex_unlock(&clientes_no_parque_mutex);
       break;
     }
     pthread_mutex_unlock(&clientes_no_parque_mutex);
-    pthread_t timer_thread;
-    if (toy->in_ride == toy->capacity) {
-      if (toy->timer_started == TRUE) {
-        pthread_cancel(timer_thread);
-        toy->timer_started = FALSE;
-      }
+    // pthread_t timer_thread;
+
+    pthread_mutex_lock(&toy->mutex);
+
+    if (toy->toy_queue == toy->capacity) {
       debug("[ON] - O brinquedo [%d] está rodando com sua capacidade máxima.\n",
             toy->id);
-      sleep(RIDETIME);
-      unsigned int in_ride = toy->in_ride;
-      toy->in_ride = 0;
-      for (int i = 0; i < in_ride; i++) {
-        sem_post(&toy->ride_sem);
+      sleep(2);
+      for (int i = 0; i < toy->toy_queue; i++) {
+        sem_post(&toy->queue_sem);  // Avisa X clientes que eles brincaram
       }
-      int value;
-          sem_getvalue(&toy->queue_sem, &value);
-      debug("[RIDE] - O brinquedo [%d] acabou de rodar.[%d]\n", toy->id, value);
+      // if (toy->timer_started == TRUE) {
+      //   pthread_cancel(timer_thread);
+      //   toy->timer_started = FALSE;
+      // }
     } else if (!toy->timer_started) {
-      debug("[TIMEOUT] - Brinquedo [%d]: Timer iniciado\n", toy->id);
-      toy->timer_started = TRUE;
-      pthread_create(&timer_thread, NULL, timer_function, toy);
-      pthread_detach(timer_thread);
+      // debug("[TIMEOUT] - Brinquedo [%d]: Timer iniciado\n", toy->id);
+      // toy->timer_started = TRUE;
+      // pthread_create(&timer_thread, NULL, timer_function, toy);
+      // pthread_detach(timer_thread);
     }
     pthread_mutex_unlock(&toy->mutex);
   }
