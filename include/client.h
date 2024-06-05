@@ -10,6 +10,7 @@ void enter_park(client_t *self);
 void queue_enter(client_t *self);
 void wait_ticket(client_t *self);
 void buy_coins(client_t *self);
+void play(client_t *self);
 
 /********************************
  *          ATENÇÃO             *
