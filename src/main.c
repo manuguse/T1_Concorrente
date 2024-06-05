@@ -14,32 +14,31 @@
 #include "queue.h"
 #include "toy.h"
 
-extern sem_t sem_saida_fila; // Semáforo binário para a saída da fila
-extern sem_t clientes_na_fila; // Semáforo binário que indica a chegada de clientes 
-
 // Inicia a fila e inicializa mecanismos de sincronização globais
 void init_main_queue(){
-    sem_init(&sem_saida_fila, 0, 0);
+    pthread_mutex_init(&gate_queue_mutex, NULL);
     sem_init(&clientes_na_fila, 0, 0);
     gate_queue = create_queue();
 }
 
 // Destroi a fila e finaliza mecanismos de sincronização globais
 void destroy_main_queue(){
-    sem_destroy(&sem_saida_fila);
+    pthread_mutex_destroy(&gate_queue_mutex);
     sem_destroy(&clientes_na_fila);
     destroy_queue(gate_queue);
 }
 
 // Inicia a instância dos clientes
 client_t **init_clients(int number, int toy_number, toy_t **toys){
-    client_t **clients = malloc(number * sizeof(client_t *));
+    n_clientes_total = number;
+    clients = malloc(number * sizeof(client_t *));
     for (int i = 0; i < number; i++){
         clients[i] = (client_t *) malloc(sizeof(client_t));
         clients[i]->id = i + 1;
         clients[i]->coins = 0;
         clients[i]->toys = toys;
         clients[i]->number_toys = toy_number;
+        sem_init(&clients[i]->wait_for_something, 0, 0);
     }
     return clients;
 }
@@ -57,6 +56,7 @@ toy_t **init_toys(int number){
 
 // Inicia a instância dos funcionarios
 ticket_t ** init_tickets(int number){
+    n_funcionarios_total = number;
     ticket_t **tickets = malloc(number * sizeof(ticket_t));
     for (int i = 0; i < number; i++){
         tickets[i] = (ticket_t *) malloc(sizeof(ticket_t));
@@ -67,25 +67,16 @@ ticket_t ** init_tickets(int number){
 
  // Desaloca os clientes
 void finish_clients(client_t **clients, int number_clients){
-    for (int i = 0; i < number_clients; i++){
-        free(clients[i]);
-    }
     free(clients);
 }
 
  // Desaloca os brinquedos
 void finish_toys(toy_t **toys, int number_toys){
-    for (int i = 0; i < number_toys; i++){
-        free(toys[i]);
-    }
     free(toys);
 }
 
  // Desaloca os funcionarios da bilheteria
 void finish_tickets(ticket_t **tickets, int number_clients){
-    for (int i = 0; i < number_clients; i++){
-        free(tickets[i]);
-    }
     free(tickets);
 }
 

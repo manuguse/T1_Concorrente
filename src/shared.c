@@ -4,12 +4,12 @@
 
 
 // Você pode declarar novas funções (ou variaveis compartilhadas) aqui
-int n_clientes; // Número total de clientes
-int n_funcionarios; // Número de atendentes
-int *clientes_em_atendimento; // Lista de clientes em atendimento
-sem_t sem_saida_fila; // Semáforo binário para a saída da fila
-sem_t clientes_na_fila; // Semáforo binário que indica a chegada de clientes
-sem_t* sem_bins_funcs; // Lista de semáforos binários que fazem cada funcionario esperar um atendimento antes de começar o próximo
+
+pthread_mutex_t gate_queue_mutex;
+sem_t clientes_na_fila;
+unsigned int n_clientes_total;
+unsigned int n_funcionarios_total;
+client_t **clients;
 
 /**********************************
  *          ATENÇÃO               *

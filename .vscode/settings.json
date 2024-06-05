@@ -4,6 +4,9 @@
         "tickets.h": "c",
         "stdlib.h": "c",
         "unistd.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "client.h": "c",
+        "defs.h": "c",
+        "queue.h": "c"
     }
 }

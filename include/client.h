@@ -5,7 +5,11 @@
 
 // Você pode declarar novas funções aqui
 
-
+void *enjoy(void *arg);
+void enter_park(client_t *self);
+void queue_enter(client_t *self);
+void wait_ticket(client_t *self);
+void buy_coins(client_t *self);
 
 /********************************
  *          ATENÇÃO             *

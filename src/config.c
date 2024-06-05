@@ -9,7 +9,6 @@
 
 #include "config.h"
 
-
 /*******************************
  *          ATENÇÃO            *
  *   NÃO EDITAR ESSE ARQUIVO   *
@@ -19,7 +18,7 @@
 config_t parse(int argc, char **argv)
 {
     int c;
-    config_t config = {1, 2, 3, 4}; // MODIFICADO TEMPORARIAMENTE, valores padrão: 1, 5, 2, 4
+    config_t config = {1, 5, 2, 4};
 
     while ((c = getopt(argc, argv, "c:t:g:s:h")) != -1)
     {
