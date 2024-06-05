@@ -26,8 +26,9 @@ void *enjoy(void *arg) {
       sem_post(&toys[i]->call_sem);
     }
   }
+  debug("[EXIT] - O turista [%d] saiu do parque. Faltam: [%d]\n", client->id,
+        n_clientes_no_parque);
   pthread_mutex_unlock(&clientes_no_parque_mutex);
-  debug("[EXIT] - O turista [%d] saiu do parque.\n", client->id);
   pthread_exit(NULL);
 }
 
@@ -64,10 +65,14 @@ void play(client_t *self) {
   while (TRUE) {
     toy_t *toy = toys[rand() % n_brinquedos_total];
     pthread_mutex_lock(&toy->mutex);
-    toy->toy_queue++;
-    pthread_mutex_unlock(&toy->mutex);
+    toy->p_in_toy_queue++;
+    debug(
+        "[CASH] - Turista [%d] entrou na fila do brinquedo [%d][%d/%d]. "
+        "Moedas:[%d]\n",
+        self->id, toy->id, toy->p_in_toy_queue, toy->capacity, self->coins);
     sem_post(
         &toy->call_sem);  // Avisa o brinquedo que alguém entrou na fila dele
+    pthread_mutex_unlock(&toy->mutex);
     sem_wait(&toy->queue_sem);  // Aguarda poder entrar no brinquedo e brincar
     debug("[CASH] - Turista [%d] brincou no brinquedo [%d]. Moedas:[%d]\n",
           self->id, toy->id, self->coins - 1);
