@@ -38,9 +38,9 @@ typedef struct toy {
   struct toy_timer *timer;
   pthread_mutex_t mutex;  // Mutex para proteger a região crítica.
   sem_t queue_sem;        // Semáforo para controlar a fila do brinquedo.
-  sem_t call_sem;  // Semáforo para avisar o brinquedo que alguém entrou nele.
+  sem_t call_sem;         // Semáforo para avisar o brinquedo que alguém entrou nele.
   unsigned int
-      p_in_toy_queue;  // Número de pessoas esperando para entrar no brinquedo.
+      p_in_toy_queue;     // Número de pessoas esperando para entrar no brinquedo.
   unsigned int should_play;
   unsigned int ride_time;
   unsigned int max_wait_time;

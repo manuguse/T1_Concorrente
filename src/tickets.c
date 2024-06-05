@@ -13,18 +13,17 @@
 #include "shared.h"
 
 // VARIÁVEIS COMPARTILHADAS NESTE ARQUIVO
-ticket_t **tickets_shared;  // Estrutura que guarda informações sobre a
+ticket_t **tickets_shared;  // estrutura que guarda informações sobre a
                             // bilheteria para a função close()
-unsigned int n_clientes_atentidos = 0;     // Contador de clientes atendidos
-pthread_mutex_t clientes_atendidos_mutex;  // Mutex para o contador de clientes
+unsigned int n_clientes_atentidos = 0;     // contador de clientes atendidos
+pthread_mutex_t clientes_atendidos_mutex;  // mutex para o contador de clientes
                                            // atendidos
 
 // Thread que implementa uma bilheteria
 void *sell(void *args) {
   ticket_t *funcionario = (ticket_t *)args;
 
-  debug("[INFO] - Bilheteria [%d] Abriu!\n",
-        funcionario->id);  // PRINT ORIGINAL
+  debug("[INFO] - Bilheteria [%d] Abriu!\n", funcionario->id);
 
   while (TRUE) {
     sem_wait(&clientes_na_fila);  // espera ter clientes na fila
@@ -34,14 +33,16 @@ void *sell(void *args) {
     }
 
     pthread_mutex_lock(&gate_queue_mutex);  // trava a fila para dar dequeue
-    client_t *cliente = clients[dequeue(gate_queue) - 1];
+    client_t *cliente =
+        clients[dequeue(gate_queue) - 1];  // pega o cliente da fila
     pthread_mutex_unlock(&gate_queue_mutex);
 
     debug("[INFO] - Bilheteria [%d] atendeu o turista [%d]\n", funcionario->id,
           cliente->id);
-    sem_post(&cliente->wait_for_something);  // Atende o cliente
+    sem_post(&cliente->wait_for_something);  // avisa o cliente que foi atendido
 
-    pthread_mutex_lock(&clientes_atendidos_mutex);
+    pthread_mutex_lock(&clientes_atendidos_mutex);  // trava para manipular o
+                                                    // contador de clientes
     n_clientes_atentidos++;
     if (n_clientes_atentidos == n_clientes_total) {
       pthread_mutex_unlock(&clientes_atendidos_mutex);
@@ -60,11 +61,10 @@ void *sell(void *args) {
 // iniciar os atendentes.
 void open_tickets(tickets_args *args) {
   pthread_mutex_init(&clientes_atendidos_mutex,
-                     NULL);  // Inicia o mutex para o contador de clientes
-  // Guarda os atendentes para a função close() e inicia as threads
-  tickets_shared = args->tickets;
+                     NULL);  // inicializa o mutex do contador de clientes
+  tickets_shared = args->tickets;  // guarda a estrutura de bilheteria
   for (int i = 0; i < n_funcionarios_total; i++) {
-    pthread_create(&(tickets_shared[i]->thread), NULL, sell,
+    pthread_create(&(tickets_shared[i]->thread), NULL, sell,  // cria a thread
                    (void *)tickets_shared[i]);
   }
 }
@@ -75,8 +75,7 @@ void close_tickets() {
 
   for (int i = 0; i < n_funcionarios_total; i++) {
     pthread_join(tickets_shared[i]->thread, NULL);
-    // debug("[INFO] - Bilheteria %d Fechou!\n", tickets_shared[i]->id); //NÃO
-    // ORIGINAL
+    debug("[INFO] - Bilheteria %d Fechou!\n", tickets_shared[i]->id);
   }
   debug("[INFO] - Todas as Bilheterias Fecharam!\n");  // NÃO ORIGINAL
 }
