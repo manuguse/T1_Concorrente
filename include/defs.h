@@ -14,8 +14,8 @@
 
 #define MAX_CAPACITY_TOY 10  // Capacidade maxima dos brinquedos.
 #define MIN_CAPACITY_TOY 5   // Capacidade minima dos brinquedos.
-// #define MAX_COINS 1
-#define MAX_COINS 20         // Maximo de moedas que um cliente pode comprar
+#define MAX_COINS 20
+// #define MAX_COINS 20         // Maximo de moedas que um cliente pode comprar
 
 #define DEBUG \
   1  //  Alterne (0 or 1) essa macro se voce espera desabilitar todas as
@@ -28,20 +28,28 @@ typedef struct ticket {
 } ticket_t;
 
 /* Adicione as estruturas de sincronização que achar necessárias */
+
+struct toy_timer;
 typedef struct toy {
   int id;                  // O id de um brinquedo.
   int capacity;            // A capacidade total de um brinquedo.
   pthread_t thread;        // A thread de um brinquedo.
   pthread_t timer_thread;  // Thread do timer do brinquedo.
-  pthread_mutex_t mutex;   // Mutex para proteger a região crítica.
-  sem_t queue_sem;         // Semáforo para controlar a fila do brinquedo.
+  struct toy_timer *timer;
+  pthread_mutex_t mutex;  // Mutex para proteger a região crítica.
+  sem_t queue_sem;        // Semáforo para controlar a fila do brinquedo.
   sem_t call_sem;  // Semáforo para avisar o brinquedo que alguém entrou nele.
   unsigned int
       p_in_toy_queue;  // Número de pessoas esperando para entrar no brinquedo.
-  unsigned int timer_started;
-  float ride_time;
-  float max_wait_time;
+  unsigned int should_play;
+  unsigned int ride_time;
+  unsigned int max_wait_time;
 } toy_t;
+
+typedef struct toy_timer {
+  toy_t *toy;
+  unsigned int canceled;
+} toy_timer_t;
 
 /* Adicione as estruturas de sincronização que achar necessárias */
 typedef struct client {

@@ -8,6 +8,7 @@
         "client.h": "c",
         "defs.h": "c",
         "queue.h": "c",
-        "type_traits": "c"
+        "type_traits": "c",
+        "pthread.h": "c"
     }
 }

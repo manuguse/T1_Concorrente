@@ -11,37 +11,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
 #include "shared.h"
 
 void *timer_function(void *arg) {
-  toy_t *toy = (toy_t *)arg;
-  sleep(toy->max_wait_time);
+  toy_timer_t *timer = (toy_timer_t *)arg;
+  toy_t *toy = timer->toy;
+
+  sleep(toy->max_wait_time); // Espera o tempo máximo, em segundos
 
   pthread_mutex_lock(&toy->mutex);
-  if (toy->p_in_toy_queue >= toy->capacity || toy->p_in_toy_queue == 0) {
-    debug("ZZZZZ brinquedo [%d]\n", toy->id);
+  unsigned int canceled = timer->canceled;
+  if (canceled) {
+    free(timer);
     pthread_mutex_unlock(&toy->mutex);
     pthread_exit(NULL);
   }
-  debug("Sleeping brinquedo [%d]\n", toy->id);
-  debug("AAAAA [%d]\n", toy->id);
-  debug(
-      "[TOY] - O brinquedo [%d] está rodando sem lotação total [%d/%d] por "
-      "[%.2f]s.\n",
-      toy->id, toy->p_in_toy_queue, toy->capacity, toy->ride_time);
-  pthread_mutex_unlock(&toy->mutex);
-  sleep(toy->ride_time);
-  pthread_mutex_lock(&toy->mutex);
-  debug("Wake me up inside brinquedo [%d]\n", toy->id);
-  toy->timer_started = FALSE;
-  unsigned int queue = toy->p_in_toy_queue;
-  toy->p_in_toy_queue = 0;
-  debug("[RIDE] - O brinquedo [%d] acabou de rodar. Fila: [%d]\n", toy->id,
-        toy->p_in_toy_queue);
-  for (int i = 0; i < queue; i++) {
-    sem_post(&toy->queue_sem);  // Avisa X clientes que eles brincaram
-  }
+
+  // if (toy->p_in_toy_queue > 0) {
+  toy->should_play = TRUE;
+  sem_post(&toy->call_sem);
+  // }
+  toy->timer = NULL;
+  free(timer);
   pthread_mutex_unlock(&toy->mutex);
   pthread_exit(NULL);
 }
@@ -66,31 +57,44 @@ void *turn_on(void *args) {
     }
     pthread_mutex_unlock(&clientes_no_parque_mutex);
 
-    if (toy->p_in_toy_queue >= toy->capacity) {
-      if (toy->timer_started == TRUE) {
-        debug("[RIDE] - Matando o timer do brinquedo [%d]\n", toy->id);
-        pthread_cancel(toy->timer_thread);
-        toy->timer_started = FALSE;
+    if (toy->p_in_toy_queue >= toy->capacity || toy->should_play == TRUE) {
+      if (toy->timer != NULL) {
+        toy->timer->canceled = TRUE;
+        toy->timer = NULL;
       }
-      debug(
-          "[TOY] - O brinquedo [%d] está rodando com sua capacidade máxima por "
-          "[%.2f]s.\n",
-          toy->id, toy->ride_time);
-      sleep(toy->ride_time);
-      unsigned int queue = toy->capacity;
-      toy->p_in_toy_queue -= toy->capacity;
+      toy->should_play = FALSE;
+      unsigned int queue = toy->p_in_toy_queue < toy->capacity
+                               ? toy->p_in_toy_queue
+                               : toy->capacity;
+      toy->p_in_toy_queue -= queue;
+      if (queue == toy->capacity) {
+        debug(
+            "[TOY] - O brinquedo [%d] está rodando com sua capacidade máxima "
+            "por "
+            "[%.2f]s.\n",
+            toy->id, (toy->ride_time/1e6));
+      } else {
+        debug(
+            "[TOY] - O brinquedo [%d] está rodando após timeout [%d/%d] por "
+            "[%.2f]s.\n",
+            toy->id, queue, toy->capacity, (toy->ride_time/1e6));
+      }
+      usleep(toy->ride_time);
       debug("[RIDE] - O brinquedo [%d] acabou de rodar. Fila: [%d]\n", toy->id,
             toy->p_in_toy_queue);
       for (int i = 0; i < queue; i++) {
         sem_post(&toy->queue_sem);  // Avisa X clientes que eles brincaram
       }
 
-    } else if (toy->p_in_toy_queue > 0 && toy->timer_started == FALSE) {
+    } else if (toy->p_in_toy_queue > 0 && toy->timer == NULL) {
       debug("[TIMEOUT] - Brinquedo [%d]: Timer iniciado por [%.2f]s\n", toy->id,
-            toy->max_wait_time);
-      toy->timer_started = TRUE;
-      pthread_create(&toy->timer_thread, NULL, timer_function, toy);
-      pthread_detach(toy->timer_thread);
+            (toy->max_wait_time/1e6));
+      toy_timer_t *timer = (toy_timer_t *)malloc(sizeof(toy_timer_t));
+      timer->toy = toy;
+      timer->canceled = FALSE;
+      toy->timer = timer;
+      pthread_create(&toy->timer_thread, NULL, timer_function, timer);
+      // pthread_detach(toy->timer_thread);
     }
     pthread_mutex_unlock(&toy->mutex);
   }
